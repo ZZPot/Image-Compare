@@ -5,6 +5,7 @@
 #include <iostream>
 
 #define TEMPLATE_IMG	"1.jpg"
+//Use your own dir, okay?
 #define CANDIDATE_DIR	"i:\\Images\\Nature_Wallpapers_1920x1080"
 
 int main()
