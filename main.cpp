@@ -14,6 +14,7 @@ int main()
 	cv::resize(templ_img, templ_img, cv::Size(), 0.3, 0.3);
 	cv::imshow("Template", templ_img);
 	image_feature feat(templ_img);
+	// for weight based comparsion (center heavier)
 	cv::Mat weights(VER_PARTS, HOR_PARTS, CV_64FC1, cv::Scalar::all(1));
 	weights.at<double>(VER_PARTS/2, HOR_PARTS/2) = 1;
 	cv::GaussianBlur(weights, weights, cv::Size(HOR_PARTS, VER_PARTS), 0);
