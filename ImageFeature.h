@@ -3,9 +3,9 @@
 #include <vector>
 #include <string>
 
-#define HOR_PARTS	1
-#define VER_PARTS	(HOR_PARTS)
-#define HIST_SIZE_H	36
+#define HOR_PARTS	3
+#define VER_PARTS	3
+#define HIST_SIZE_H	10
 #define HIST_SIZE_S	4
 #define HIST_SIZE_V	4
 #define NORM_VAL	180
