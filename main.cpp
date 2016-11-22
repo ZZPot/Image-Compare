@@ -8,48 +8,74 @@
 #include "common.h"
 
 
-
 #define TEMPLATE_IMG	"1.jpg"
 //Use your own dir, okay?
-#define CANDIDATE_DIR	"i:\\Images\\обои11"
+#define CANDIDATE_DIR	"W:\\GH\\VS_CV_ImageCompare\\wp"
 
 #define RANDOM_NAME_MAX_CHARS 30
 #define RANDOM_CHUNK_SIZE	5
 
-std::string CreateRandomName(unsigned num_chars, std::string prefix = "", std::string postfix = "");
+#define WND_NAME_TEMPLATE	"Template"
 
+#define BORDER_W		4
+#define SCREEN_W		1280
+#define SCREEN_H		1024
+#define ROW_SIZE		10
+#define SCROLL_MAX		50
+
+std::string CreateRandomName(unsigned num_chars, std::string prefix = "", std::string postfix = "");
+void ShowSame(int new_pos, void* param);
+
+struct img_to_compare
+{
+	cv::Mat img;
+	image_feature feat;
+	cv::Mat diff;
+	double same;
+	std::string name;
+};
+
+std::vector<img_to_compare> images_to_compare;
+cv::Size wnd_size(SCREEN_W/ROW_SIZE - BORDER_W*2, SCREEN_H/ROW_SIZE - BORDER_W*2);
+
+bool img_pred(img_to_compare& img1, img_to_compare& img2)
+{
+	return img1.same > img2.same;
+}
 int main()
 {
 	cv::Mat templ_img = cv::imread(TEMPLATE_IMG);
-	//cv::resize(templ_img, templ_img, cv::Size(), 0.3, 0.3);
-	cv::imshow("Template", templ_img);
-	image_feature feat(templ_img);
+	image_feature template_feature(templ_img);
+	cv::imshow(WND_NAME_TEMPLATE, templ_img);
+	cv::createTrackbar("0-1", WND_NAME_TEMPLATE, 0, SCROLL_MAX, ShowSame, nullptr);
+
 	// for weight based comparsion (center heavier)
 	cv::Mat weights(VER_PARTS, HOR_PARTS, CV_64FC1, cv::Scalar::all(0));
 	weights.at<double>(VER_PARTS/2, HOR_PARTS/2) = 1;
-	cv::GaussianBlur(weights, weights, cv::Size(HOR_PARTS, VER_PARTS), 0);
+	//cv::GaussianBlur(weights, weights, cv::Size(HOR_PARTS, VER_PARTS), 0);
+	cv::blur(weights, weights, cv::Size(HOR_PARTS, VER_PARTS));
+	cv::Scalar full_w = cv::sum(weights);
+	//weights /= full_w[0]; 
 	Collect collector;
 	CrawlFolder(CANDIDATE_DIR, 0, 0, &collector);
+	images_to_compare.reserve(collector.file_names.size());
 	for(auto img_file: collector.file_names)
 	{
-		cv::Mat img = cv::imread(img_file);
-		cv::resize(img, img, templ_img.size(), cv::INTER_CUBIC);
-		cv::blur(img, img, cv::Size(3, 3));
-		cv::Mat diff = feat.CompareImg(img);
-		bool same = CheckCompareMat(diff, weights, 0.1);
-		if(same)
-		{
-			cv::imshow("Same", img);
-			CopyFile(img_file.c_str(), CreateRandomName(6, "same\\", ".jpg").c_str(), false);
-		}
-		else
-		{
-			cv::imshow("Different", img);
-		}
-		char key = cv::waitKey(30);
-		if(key == 27)
-			break;
+		img_to_compare temp;
+		temp.name = CreateRandomName(6, "", "_img");
+		temp.img = cv::imread(img_file);
+		temp.feat.Set(temp.img);
+		cv::resize(temp.img, temp.img, wnd_size);
+		cv::copyMakeBorder(temp.img, temp.img, BORDER_W, BORDER_W, BORDER_W, BORDER_W,
+							cv::BORDER_CONSTANT, cv::Scalar::all(0));
+		//cv::blur(img, img, cv::Size(3, 3));
+		temp.diff = template_feature.Compare(temp.feat);
+		temp.same = CheckCompareMat(temp.diff, weights);
+		images_to_compare.push_back(temp);
 	}
+	sort(images_to_compare.begin(), images_to_compare.end(), img_pred);
+	ShowSame(0, nullptr);
+	char key = cv::waitKey(0);
 	return 0;
 }
 
@@ -68,4 +94,21 @@ std::string CreateRandomName(unsigned num_chars, std::string prefix, std::string
 	}
 	new_name += postfix;
 	return new_name;
+}
+void ShowSame(int new_pos, void* param)
+{
+	for(unsigned i = 0; i < images_to_compare.size(); i++)
+	{
+		cv::Scalar color;
+		if(images_to_compare[i].same * SCROLL_MAX < (double)new_pos)
+			color = cv::Scalar(0, 255, 0);
+		else
+			color = cv::Scalar(0, 0, 255);
+		cv::rectangle(images_to_compare[i].img, cv::Point(0, 0), 
+			cv::Point(images_to_compare[i].img.cols - 1, images_to_compare[i].img.rows - 1), color, BORDER_W);
+		int top = i / ROW_SIZE * (wnd_size.height+20);
+		int left = i % ROW_SIZE * (wnd_size.width + 6);
+		cv::imshow(images_to_compare[i].name, images_to_compare[i].img);
+		cv::moveWindow(images_to_compare[i].name, left, top);
+	}
 }

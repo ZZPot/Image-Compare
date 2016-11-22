@@ -5,12 +5,40 @@
 
 #define HOR_PARTS	3
 #define VER_PARTS	3
-#define HIST_SIZE_H	10
+#define HIST_SIZE_H	9
 #define HIST_SIZE_S	4
 #define HIST_SIZE_V	4
 #define NORM_VAL	180
 
 #define HUE_ONLY
+
+/*
+enum PAT_TYPE
+{
+	PAT_UNKNOWN = -2,
+	PAT_NOISE =-1,
+	PAT_PLAIN = 0,
+
+	PAT_LINE_TOP, // -
+	PAT_LINE_MIDDLE,
+	PAT_LINE_BOTTOM,
+
+	PAT_LINE_LEFT, // |
+	PAT_LINE_CENTER,
+	PAT_LINE_RIGHT,
+
+
+
+
+};
+
+struct image_feature
+{
+	std::vector<cv::Scalar> _dom_colors;
+	cv::Mat 
+};*/
+
+
 class image_feature
 {
 public:
@@ -21,6 +49,7 @@ public:
 	cv::Mat Compare(const image_feature& feature);
 protected:
 	std::vector<cv::Mat> _hist;
+
 };
 
-bool CheckCompareMat(cv::Mat cmp_mat, cv::Mat w, double max_diff);
+double CheckCompareMat(cv::Mat cmp_mat, cv::Mat w);

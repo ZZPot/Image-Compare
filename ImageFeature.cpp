@@ -56,16 +56,18 @@ cv::Mat image_feature::Compare(const image_feature& feature)
 	return res;
 }
 
-bool CheckCompareMat(cv::Mat cmp_mat, cv::Mat w, double max_diff)
+double CheckCompareMat(cv::Mat cmp_mat, cv::Mat w)
 {
 	cv::Mat res_mat = cmp_mat.clone();
 	cv::multiply(cmp_mat, w, res_mat);
-	cv::Scalar diff = sum(res_mat);
-	diff[0] /= res_mat.cols * res_mat.rows;
+	cv::Scalar diff = cv::sum(res_mat);
+	//diff[0] /= res_mat.cols * res_mat.rows;
 #ifdef _DEBUG
 	std::cout<< "--------------------------\n";
 	std::cout<< cmp_mat <<std::endl;
+	std::cout<< w <<std::endl;
+	std::cout<< res_mat <<std::endl;
 	std::cout<< "Diff: " << diff[0] << std::endl;
 #endif
-	return diff[0] < max_diff;
+	return diff[0];
 }
