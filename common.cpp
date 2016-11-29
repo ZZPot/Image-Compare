@@ -1,8 +1,5 @@
 #include "common.h"
 #include <shlobj.h>
-#include <list>
-
-#pragma warning(disable: 4996)
 
 BOOL IsDirectory(std::string file)
 {
@@ -62,32 +59,6 @@ BOOL CrawlFolder(std::string first_dir, unsigned max_depth, unsigned cur_depth, 
 
 BOOL Collect::Proceed(LPCTSTR full_file_name, LPCTSTR file_name)
 {
-	if(HasExt(file_name, "JPG PNG"))
 	file_names.push_back(full_file_name);
 	return FALSE;
-}
-
-bool HasExt(const char* file, const char* ext)
-{
-	bool res = FALSE;
-	if(!ext)
-		return TRUE;
-	if(!file)
-		return FALSE;
-	char* ext_str = new char[strlen(ext)+1];
-	strcpy(ext_str, ext);
-	std::list<char*> ext_list;
-	char* tok = strtok(ext_str, " ");
-	while(tok)
-	{
-		ext_list.push_back(tok);
-		tok = strtok(NULL, " ");
-	}
-	const char* point_ptr = strrchr(file, '.');
-	if(point_ptr)
-		for(std::list<char*>::iterator i = ext_list.begin(); i != ext_list.end(); i++)
-			if(!stricmp(point_ptr+1, (*i)))
-				res = TRUE;
-	delete [] ext_str;
-	return res;
 }
